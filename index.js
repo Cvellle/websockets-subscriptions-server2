@@ -1,51 +1,29 @@
+const express = require("express");
+const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
+const typeDefs = require("./graphQL/schema/index");
+const resolvers = require("./graphQL/resolver/index");
 const { GraphQLServer, PubSub } = require("graphql-yoga");
+const app = express();
 
-const messages = [];
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 
-const typeDefs = `
-    type Message {
-        sender: String!
-        channel: String!
-        text: String!
-    }
-    
-    type Query {
-      getChatMessages: [Message]
-    }
-    
-    type Mutation {
-        sendMessage(sender: String!, channel: String!, text: String!): Message!
-    }
-
-    type Subscription {
-        message(channel: String!): Message!
-    }
-`;
-
-const resolvers = {
-  Query: {
-    getChatMessages: () => {
-      return messages;
-    },
-  },
-  Mutation: {
-    sendMessage: (_, { sender, channel, text }, { pubsub }) => {
-      const message = { sender, channel, text };
-      messages.push(message);
-      pubsub.publish(channel, { message });
-      return message;
-    },
-  },
-  Subscription: {
-    message: {
-      subscribe: (_, { channel }, { pubsub }) => {
-        return pubsub.asyncIterator(channel);
-      },
-    },
-  },
-};
+var database = "mongodb+srv://cvele:cvelePass@posts.jzao1.mongodb.net/test";
+mongoose
+  .connect(database)
+  .then(() => {
+    console.log("Connection to DB successful");
+  })
+  .catch((err) => {
+    console.log("Db connection error====", err);
+  });
 
 const pubsub = new PubSub();
 const server = new GraphQLServer({ typeDefs, resolvers, context: { pubsub } });
 
-server.start(() => console.log("Server is running on http://localhost:4000"));
+server.start(() => {
+  console.log("GraphQL Listening on port 4000");
+});
+
+//https://github.com/abhishekraj210/graphQL-node-mongoDB
