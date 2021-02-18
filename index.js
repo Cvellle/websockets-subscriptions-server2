@@ -11,7 +11,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 var database = "mongodb+srv://cvele:cvelePass@posts.jzao1.mongodb.net/test";
 mongoose
-  .connect(database)
+  .connect(database, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
     console.log("Connection to DB successful");
   })
